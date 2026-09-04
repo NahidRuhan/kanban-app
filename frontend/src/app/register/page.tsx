@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { apiClient } from '@/lib/api';
+import { apiClient, ApiError } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
@@ -26,11 +26,17 @@ export default function RegisterPage() {
         body: JSON.stringify({ email, name, password }),
       });
       login({ accessToken: data.accessToken, refreshToken: data.refreshToken }, data.user);
-    } catch (err: any) {
-      if (Array.isArray(err.payload?.message)) {
-        setError(err.payload.message.join(', '));
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        if (Array.isArray(err.payload?.message)) {
+          setError(err.payload.message.join(', '));
+        } else {
+          setError(err.message || 'Registration failed');
+        }
+      } else if (err instanceof Error) {
+        setError(err.message);
       } else {
-        setError(err.message || 'Registration failed');
+        setError('Registration failed');
       }
     } finally {
       setLoading(false);

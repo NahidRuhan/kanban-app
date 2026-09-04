@@ -1,11 +1,24 @@
 import { useState } from 'react';
 import { X, Loader2, UserMinus } from 'lucide-react';
-import { apiClient } from '@/lib/api';
+import { apiClient, ApiError } from '@/lib/api';
 import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 
+export interface BoardMember {
+  user: { id: string; name: string; email: string };
+  role: string;
+}
+
+export interface BoardData {
+  id: string;
+  title: string;
+  ownerId: string;
+  owner?: { name: string; email: string };
+  members: BoardMember[];
+}
+
 interface ShareBoardModalProps {
-  board: any;
+  board: BoardData;
   onClose: () => void;
   onUpdate: () => void;
 }
@@ -49,8 +62,12 @@ export function ShareBoardModal({ board, onClose, onUpdate }: ShareBoardModalPro
       });
       setEmail('');
       onUpdate(); // refresh board to get new members
-    } catch (err: any) {
-      setError(err.message || 'Failed to add member');
+    } catch (err: unknown) {
+      if (err instanceof Error || err instanceof ApiError) {
+        toast.error(err.message || 'Failed to send invite');
+      } else {
+        toast.error('Failed to send invite');
+      }
     } finally {
       setLoading(false);
     }
@@ -68,8 +85,12 @@ export function ShareBoardModal({ board, onClose, onUpdate }: ShareBoardModalPro
             });
             onUpdate();
             toast.success('Member removed');
-          } catch (err: any) {
-            toast.error(err.message || 'Failed to remove member');
+          } catch (err: unknown) {
+            if (err instanceof Error || err instanceof ApiError) {
+              toast.error(err.message || 'Failed to remove member');
+            } else {
+              toast.error('Failed to remove member');
+            }
           }
         }
       },
@@ -80,7 +101,7 @@ export function ShareBoardModal({ board, onClose, onUpdate }: ShareBoardModalPro
     });
   };
 
-  const ownerAvatarColor = getAvatarColor(board.owner.id || board.owner.email);
+  const ownerAvatarColor = getAvatarColor(board.ownerId || board.owner?.email || 'unknown');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
@@ -126,15 +147,15 @@ export function ShareBoardModal({ board, onClose, onUpdate }: ShareBoardModalPro
             <li className="flex items-center justify-between p-3 bg-slate-50/50">
               <div className="flex items-center space-x-3">
                 <div className={`w-8 h-8 rounded-[10px] flex items-center justify-center text-xs font-semibold ${ownerAvatarColor.bg} ${ownerAvatarColor.text}`}>
-                  {board.owner.name.charAt(0).toUpperCase()}
+                  {board.owner?.name?.charAt(0).toUpperCase() || '?'}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#0F172A]">{board.owner.name} <span className="text-xs font-normal text-slate-500">(Owner)</span></p>
-                  <p className="text-xs text-slate-500">{board.owner.email}</p>
+                  <p className="text-sm font-medium text-[#0F172A]">{board.owner?.name || 'Unknown'} <span className="text-xs font-normal text-slate-500">(Owner)</span></p>
+                  <p className="text-xs text-slate-500">{board.owner?.email}</p>
                 </div>
               </div>
             </li>
-            {board.members.map((member: any) => {
+            {board.members.map((member: BoardMember) => {
               const memberColor = getAvatarColor(member.user.id || member.user.email);
               return (
                 <li key={member.user.id} className="flex items-center justify-between p-3 group">

@@ -5,8 +5,9 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { TaskItem } from './TaskItem';
 import { Loader2, Plus, Trash2, Check, X, Edit2, GripHorizontal } from 'lucide-react';
-import { apiClient } from '@/lib/api';
+import { apiClient, ApiError } from '@/lib/api';
 import { toast } from 'sonner';
+import { RemoteDragState } from './BoardCanvas';
 
 interface ColumnProps {
   column: {
@@ -18,7 +19,7 @@ interface ColumnProps {
   onDeleteTask: (taskId: string) => void;
   onUpdateTask: () => void;
   onUpdateColumn: () => void;
-  remoteDrags: { [taskId: string]: any };
+  remoteDrags: { [taskId: string]: RemoteDragState };
 }
 
 const COLUMN_ACCENTS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4', '#F97316', '#14B8A6'];
@@ -77,8 +78,12 @@ export function ColumnView({ column, onAddTask, onDeleteTask, onUpdateTask, onUp
       });
       setIsEditing(false);
       onUpdateColumn();
-    } catch (e: any) {
-      toast.error(e.message || 'Failed to update column');
+    } catch (e: unknown) {
+      if (e instanceof Error || e instanceof ApiError) {
+        toast.error(e.message || 'Failed to update column title');
+      } else {
+        toast.error('Failed to update column title');
+      }
     }
   };
 
@@ -92,8 +97,12 @@ export function ColumnView({ column, onAddTask, onDeleteTask, onUpdateTask, onUp
             await apiClient(`/api/columns/${column.id}`, { method: 'DELETE' });
             onUpdateColumn();
             toast.success('Column deleted');
-          } catch (e: any) {
-            toast.error(e.message || 'Failed to delete column');
+          } catch (e: unknown) {
+            if (e instanceof Error || e instanceof ApiError) {
+              toast.error(e.message || 'Failed to delete column');
+            } else {
+              toast.error('Failed to delete column');
+            }
           }
         }
       },
@@ -164,7 +173,7 @@ export function ColumnView({ column, onAddTask, onDeleteTask, onUpdateTask, onUp
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-[120px]">
+      <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2 min-h-30">
         <SortableContext items={column.tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {column.tasks.map((task) => (
             <TaskItem 

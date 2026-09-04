@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
-import { apiClient } from '@/lib/api';
+import { apiClient, ApiError } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface TaskDetailModalProps {
@@ -27,15 +27,19 @@ export function TaskDetailModal({ task, onClose, onUpdate, mode = 'edit' }: Task
       onUpdate();
       onClose();
       toast.success('Task updated');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to update task');
+    } catch (err: unknown) {
+      if (err instanceof Error || err instanceof ApiError) {
+        toast.error(err.message || 'Failed to update task');
+      } else {
+        toast.error('Failed to update task');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
       <div 
         className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-[0_20px_40px_-15px_rgba(15,23,42,0.15)]"
         style={{ animation: 'modalEnter 200ms cubic-bezier(0.23, 1, 0.32, 1)' }}
@@ -67,7 +71,7 @@ export function TaskDetailModal({ task, onClose, onUpdate, mode = 'edit' }: Task
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full min-h-[120px] resize-y rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                className="w-full min-h-30 resize-y rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
               />
             </div>
 
@@ -91,7 +95,7 @@ export function TaskDetailModal({ task, onClose, onUpdate, mode = 'edit' }: Task
         ) : (
           <div>
             <div className="mb-4">
-              <h3 className="text-xl font-semibold text-[#0F172A] break-words">{task.title}</h3>
+              <h3 className="text-xl font-semibold text-[#0F172A] wrap-break-words">{task.title}</h3>
             </div>
             <div>
               <h4 className="text-sm font-medium text-slate-700 mb-2">Description</h4>

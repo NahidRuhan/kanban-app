@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -12,44 +12,142 @@ import {
   DragStartEvent,
   DragOverEvent,
   DragEndEvent,
+  DragMoveEvent,
+  DragCancelEvent,
+  Active,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates, arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { ColumnView } from './ColumnView';
 import { TaskItem } from './TaskItem';
 import { RemoteDragOverlay } from './RemoteDragOverlay';
-import { apiClient } from '@/lib/api';
+import { apiClient, ApiError } from '@/lib/api';
 import { Loader2, Plus } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import Cookies from 'js-cookie';
 import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
 
-interface Task {
+export interface Task {
   id: string;
   title: string;
   position: number;
 }
 
-interface Column {
+export interface Column {
   id: string;
   title: string;
   position: number;
   tasks: Task[];
 }
 
+export interface RemoteDragState {
+  item: Task | Column;
+  type: 'task' | 'column';
+  delta: { x: number; y: number };
+  user: { name?: string; email?: string };
+}
+
 interface BoardCanvasProps {
   boardId: string;
   initialData: {
-    columns: any[];
+    columns: Column[];
   };
   onBoardUpdate?: () => void;
 }
 
+// Sort helper
+export const sortData = (cols: Column[]) => {
+  cols.sort((a, b) => a.position - b.position);
+  cols.forEach(c => c.tasks.sort((a, b) => a.position - b.position));
+  return cols;
+};
+
+// Pure function to compute the new columns state during a drag-over
+export function computeDragOverState(
+  prev: Column[],
+  activeId: string,
+  overId: string,
+  isOverTask: boolean,
+  isOverColumn: boolean,
+  modifier: number = 0
+): Column[] {
+  // Dropping a Task over another Task
+  if (isOverTask) {
+    const activeColumnIndex = prev.findIndex((col) => col.tasks.some((t) => t.id === activeId));
+    const overColumnIndex = prev.findIndex((col) => col.tasks.some((t) => t.id === overId));
+
+    if (activeColumnIndex === -1 || overColumnIndex === -1) return prev;
+
+    const activeColumn = prev[activeColumnIndex];
+    const overColumn = prev[overColumnIndex];
+
+    if (activeColumn.id !== overColumn.id) {
+      // Moved to different column
+      const newPrev = [...prev];
+      const activeItems = [...activeColumn.tasks];
+      const overItems = [...overColumn.tasks];
+
+      const activeIndex = activeItems.findIndex((t) => t.id === activeId);
+      const overIndex = overItems.findIndex((t) => t.id === overId);
+
+      const [movedTask] = activeItems.splice(activeIndex, 1);
+      overItems.splice(overIndex + modifier, 0, movedTask);
+
+      newPrev[activeColumnIndex] = { ...activeColumn, tasks: activeItems };
+      newPrev[overColumnIndex] = { ...overColumn, tasks: overItems };
+
+      return newPrev;
+    }
+
+    // Same column
+    const newPrev = [...prev];
+    const col = newPrev[activeColumnIndex];
+    const activeIndex = col.tasks.findIndex((t) => t.id === activeId);
+    const overIndex = col.tasks.findIndex((t) => t.id === overId);
+    
+    const newTasks = arrayMove(col.tasks, activeIndex, overIndex);
+    newPrev[activeColumnIndex] = { ...col, tasks: newTasks };
+    return newPrev;
+  }
+
+  // Dropping a Task over an empty Column
+  if (isOverColumn) {
+    const activeColumnIndex = prev.findIndex((col) => col.tasks.some((t) => t.id === activeId));
+    const overColumnIndex = prev.findIndex((col) => col.id === overId);
+
+    if (activeColumnIndex === -1 || overColumnIndex === -1) return prev;
+    if (activeColumnIndex === overColumnIndex) return prev; // handled
+
+    const newPrev = [...prev];
+    const activeColumn = newPrev[activeColumnIndex];
+    const overColumn = newPrev[overColumnIndex];
+
+    const activeIndex = activeColumn.tasks.findIndex((t) => t.id === activeId);
+    const [movedTask] = activeColumn.tasks.splice(activeIndex, 1);
+    
+    const overItems = [...overColumn.tasks];
+    overItems.push(movedTask);
+
+    newPrev[activeColumnIndex] = { ...activeColumn };
+    newPrev[overColumnIndex] = { ...overColumn, tasks: overItems };
+
+    return newPrev;
+  }
+
+  return prev;
+}
+
 export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvasProps) {
-  const [columns, setColumns] = useState<Column[]>(initialData.columns);
+  const [columns, setColumns] = useState<Column[]>(() => sortData([...initialData.columns]));
+  const [prevColumnsProp, setPrevColumnsProp] = useState<Column[]>(initialData.columns);
+
+  if (initialData.columns !== prevColumnsProp) {
+    setPrevColumnsProp(initialData.columns);
+    setColumns(sortData([...initialData.columns]));
+  }
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
-  const [remoteDrags, setRemoteDrags] = useState<{ [id: string]: { item: any, type: 'task' | 'column', delta: { x: number, y: number }, user: any } }>({});
+  const [remoteDrags, setRemoteDrags] = useState<{ [id: string]: RemoteDragState }>({});
   
   const { user } = useAuth();
   
@@ -59,18 +157,21 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
   const addColumnInputRef = useRef<HTMLInputElement>(null);
 
   // We need to keep a ref to socket for onDragMove
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
 
-  // Sort helper
-  const sortData = (cols: Column[]) => {
-    cols.sort((a, b) => a.position - b.position);
-    cols.forEach(c => c.tasks.sort((a, b) => a.position - b.position));
-    return cols;
-  };
 
-  useEffect(() => {
-    setColumns(sortData([...initialData.columns]));
-  }, [initialData]);
+
+  const fetchBoard = useCallback(async () => {
+    try {
+      const data = await apiClient(`/api/boards/${boardId}`);
+      setColumns(sortData(data.columns));
+    } catch (e: unknown) {
+      console.error(e);
+      if (e instanceof ApiError && (e.status === 403 || e.status === 404)) {
+        window.location.reload();
+      }
+    }
+  }, [boardId]);
 
   // WebSocket Setup
   useEffect(() => {
@@ -80,7 +181,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
     const newSocket: Socket = io(`${apiUrl}/boards`, {
       auth: { token },
     });
-    setSocket(newSocket);
+    socketRef.current = newSocket;
 
     if (newSocket.connected) {
       newSocket.emit('join-board', { boardId });
@@ -93,7 +194,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
     const handleUpdate = () => fetchBoard();
 
     newSocket.on('task:created', handleUpdate);
-    newSocket.on('task:moved', (payload: any) => {
+    newSocket.on('task:moved', (payload: { taskId: string; toColumnId: string; position: number }) => {
       setColumns(prev => {
         let movedTask: Task | undefined;
         // Find the task
@@ -106,7 +207,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
 
         // Remove from ALL columns first to prevent duplicates (especially when receiving our own broadcast)
         const next = prev.map(col => {
-          let newCol = { ...col };
+          const newCol = { ...col };
           newCol.tasks = newCol.tasks.filter(t => t.id !== payload.taskId);
           
           if (newCol.id === payload.toColumnId) {
@@ -134,7 +235,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
       }
     });
 
-    newSocket.on('task:drag-move', (payload: any) => {
+    newSocket.on('task:drag-move', (payload: { taskId: string; task: Task; delta: { x: number; y: number }; user: { name?: string; email?: string } }) => {
       setRemoteDrags(prev => ({
         ...prev,
         [payload.taskId]: {
@@ -146,7 +247,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
       }));
     });
 
-    newSocket.on('task:drag-end', (payload: any) => {
+    newSocket.on('task:drag-end', (payload: { taskId: string }) => {
       setRemoteDrags(prev => {
         const next = { ...prev };
         delete next[payload.taskId];
@@ -155,7 +256,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
       handleUpdate();
     });
 
-    newSocket.on('column:drag-move', (payload: any) => {
+    newSocket.on('column:drag-move', (payload: { columnId: string; column: Column; delta: { x: number; y: number }; user: { name?: string; email?: string } }) => {
       setRemoteDrags(prev => ({
         ...prev,
         [payload.columnId]: {
@@ -167,7 +268,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
       }));
     });
 
-    newSocket.on('column:drag-end', (payload: any) => {
+    newSocket.on('column:drag-end', (payload: { columnId: string }) => {
       setRemoteDrags(prev => {
         const next = { ...prev };
         delete next[payload.columnId];
@@ -176,7 +277,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
       handleUpdate();
     });
 
-    newSocket.on('column:drag-over-state', (payload: any) => {
+    newSocket.on('column:drag-over-state', (payload: { activeId: string; overId: string }) => {
       setColumns(prev => {
         const oldIndex = prev.findIndex(c => c.id === payload.activeId);
         const newIndex = prev.findIndex(c => c.id === payload.overId);
@@ -185,7 +286,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
       });
     });
 
-    newSocket.on('task:drag-over-state', (payload: any) => {
+    newSocket.on('task:drag-over-state', (payload: { activeId: string; overId: string; isOverTask: boolean; isOverColumn: boolean; modifier?: number }) => {
       // Receive drag over state from another client and compute new column arrangement
       setColumns(prev => computeDragOverState(
         prev, 
@@ -200,21 +301,9 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
     return () => {
       newSocket.disconnect();
     };
-  }, [boardId]);
+  }, [boardId, fetchBoard, onBoardUpdate]);
 
-  const fetchBoard = async () => {
-    try {
-      const data = await apiClient(`/api/boards/${boardId}`);
-      setColumns(sortData(data.columns));
-    } catch (e: any) {
-      console.error(e);
-      if (e.status === 403 || e.status === 404) {
-        window.location.reload();
-      }
-    }
-  };
-
-  function getActiveType(active: any) {
+  function getActiveType(active: Active) {
     if (active?.data?.current?.type) return active.data.current.type;
     if (activeTask && active?.id === activeTask.id) return 'Task';
     if (activeColumn && active?.id === activeColumn.id) return 'Column';
@@ -252,7 +341,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
 
     if (!isActiveTask) {
       // It's a column being dragged
-      if (socket) {
+      if (socketRef.current) {
         let overColumnId = overId;
         if (isOverTask) {
           // If we hover over a task, find its parent column
@@ -261,7 +350,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
             overColumnId = targetCol.id;
           }
         }
-        socket.emit('column:drag-over-state', {
+        socketRef.current.emit('column:drag-over-state', {
           boardId,
           activeId,
           overId: overColumnId
@@ -282,8 +371,8 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
       const next = computeDragOverState(prev, activeId, overId, isOverTask, isOverColumn, modifier);
       
       // If the state actually changed, broadcast it!
-      if (next !== prev && socket) {
-        socket.emit('task:drag-over-state', {
+      if (next !== prev && socketRef.current) {
+        socketRef.current.emit('task:drag-over-state', {
           boardId,
           activeId,
           overId,
@@ -296,94 +385,19 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
     });
   };
 
-  // Pure function to compute the new columns state during a drag-over
-  function computeDragOverState(
-    prev: Column[],
-    activeId: string,
-    overId: string,
-    isOverTask: boolean,
-    isOverColumn: boolean,
-    modifier: number = 0
-  ): Column[] {
-    // Dropping a Task over another Task
-    if (isOverTask) {
-      const activeColumnIndex = prev.findIndex((col) => col.tasks.some((t) => t.id === activeId));
-      const overColumnIndex = prev.findIndex((col) => col.tasks.some((t) => t.id === overId));
-
-      if (activeColumnIndex === -1 || overColumnIndex === -1) return prev;
-
-      const activeColumn = prev[activeColumnIndex];
-      const overColumn = prev[overColumnIndex];
-
-      if (activeColumn.id !== overColumn.id) {
-        // Moved to different column
-        const newPrev = [...prev];
-        const activeItems = [...activeColumn.tasks];
-        const overItems = [...overColumn.tasks];
-
-        const activeIndex = activeItems.findIndex((t) => t.id === activeId);
-        const overIndex = overItems.findIndex((t) => t.id === overId);
-
-        const [movedTask] = activeItems.splice(activeIndex, 1);
-        overItems.splice(overIndex + modifier, 0, movedTask);
-
-        newPrev[activeColumnIndex] = { ...activeColumn, tasks: activeItems };
-        newPrev[overColumnIndex] = { ...overColumn, tasks: overItems };
-
-        return newPrev;
-      }
-
-      // Same column
-      const newPrev = [...prev];
-      const col = newPrev[activeColumnIndex];
-      const activeIndex = col.tasks.findIndex((t) => t.id === activeId);
-      const overIndex = col.tasks.findIndex((t) => t.id === overId);
-      
-      const newTasks = arrayMove(col.tasks, activeIndex, overIndex);
-      newPrev[activeColumnIndex] = { ...col, tasks: newTasks };
-      return newPrev;
-    }
-
-    // Dropping a Task over an empty Column
-    if (isOverColumn) {
-      const activeColumnIndex = prev.findIndex((col) => col.tasks.some((t) => t.id === activeId));
-      const overColumnIndex = prev.findIndex((col) => col.id === overId);
-
-      if (activeColumnIndex === -1 || overColumnIndex === -1) return prev;
-      if (activeColumnIndex === overColumnIndex) return prev; // handled
-
-      const newPrev = [...prev];
-      const activeColumn = newPrev[activeColumnIndex];
-      const overColumn = newPrev[overColumnIndex];
-
-      const activeIndex = activeColumn.tasks.findIndex((t) => t.id === activeId);
-      const [movedTask] = activeColumn.tasks.splice(activeIndex, 1);
-      
-      const overItems = [...overColumn.tasks];
-      overItems.push(movedTask);
-
-      newPrev[activeColumnIndex] = { ...activeColumn };
-      newPrev[overColumnIndex] = { ...overColumn, tasks: overItems };
-
-      return newPrev;
-    }
-
-    return prev;
-  };
-
   // Prevent stray drag-move emissions after drag-end has been triggered
   const isDraggingRef = useRef(false);
   const lastEmitTime = useRef(0);
 
-  const handleDragMove = (event: any) => {
-    if (!socket || !event.active || !isDraggingRef.current) return;
+  const handleDragMove = (event: DragMoveEvent) => {
+    if (!socketRef.current || !event.active || !isDraggingRef.current) return;
     const now = Date.now();
     // throttle to ~30ms (approx 30fps)
     if (now - lastEmitTime.current > 30) {
       const { active } = event;
       const type = getActiveType(active);
       if (type === 'Task' && activeTask) {
-        socket.emit('task:drag-move', {
+        socketRef.current.emit('task:drag-move', {
           boardId,
           taskId: active.id,
           task: activeTask,
@@ -391,7 +405,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
           user: { name: user?.name, email: user?.email }
         });
       } else if (type === 'Column' && activeColumn) {
-        socket.emit('column:drag-move', {
+        socketRef.current.emit('column:drag-move', {
           boardId,
           columnId: active.id,
           column: activeColumn,
@@ -403,19 +417,19 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
     }
   };
 
-  const emitDragEnd = (event: any) => {
-    if (!socket || !event.active) return;
+  const emitDragEnd = (event: DragEndEvent | DragCancelEvent) => {
+    if (!socketRef.current || !event.active) return;
     const { active } = event;
     const type = getActiveType(active);
     
     if (type === 'Task') {
-      socket.emit('task:drag-end', { boardId, taskId: active.id });
+      socketRef.current.emit('task:drag-end', { boardId, taskId: active.id });
     } else if (type === 'Column') {
-      socket.emit('column:drag-end', { boardId, columnId: active.id });
+      socketRef.current.emit('column:drag-end', { boardId, columnId: active.id });
     }
   };
 
-  const handleDragCancel = (event: any) => {
+  const handleDragCancel = (event: DragCancelEvent) => {
     isDraggingRef.current = false;
     emitDragEnd(event);
     setActiveTask(null);
@@ -482,7 +496,6 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
     if (!over) return;
 
     const activeId = active.id;
-    const overId = over.id;
 
     // Find the final column and index of the dragged item
     let targetColumnId = '';
@@ -534,8 +547,12 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
       fetchBoard();
       setNewColumnTitle('');
       setShowAddColumn(false);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to create column');
+    } catch (err: unknown) {
+      if (err instanceof Error || err instanceof ApiError) {
+        toast.error(err.message || 'Failed to create column');
+      } else {
+        toast.error('Failed to create column');
+      }
     } finally {
       setCreatingColumn(false);
     }
@@ -549,8 +566,12 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
       });
       // Fallback/immediate update if WS is delayed
       fetchBoard();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to create task');
+    } catch (err: unknown) {
+      if (err instanceof Error || err instanceof ApiError) {
+        toast.error(err.message || 'Failed to create task');
+      } else {
+        toast.error('Failed to create task');
+      }
     }
   };
 
@@ -564,8 +585,12 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
             await apiClient(`/api/tasks/${taskId}`, { method: 'DELETE' });
             fetchBoard();
             toast.success('Task deleted');
-          } catch (err: any) {
-            toast.error(err.message || 'Failed to delete task');
+          } catch (err: unknown) {
+            if (err instanceof Error || err instanceof ApiError) {
+              toast.error(err.message || 'Failed to delete task');
+            } else {
+              toast.error('Failed to delete task');
+            }
           }
         }
       },
@@ -687,7 +712,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
         </DndContext>
 
         {/* Render remote drags */}
-        {Object.values(remoteDrags).map((drag: any) => (
+        {Object.values(remoteDrags).map((drag) => (
           <RemoteDragOverlay
             key={drag.item.id}
             item={drag.item}

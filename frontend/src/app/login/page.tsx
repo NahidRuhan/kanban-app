@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { apiClient } from '@/lib/api';
+import { apiClient, ApiError } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
@@ -25,8 +25,14 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       login({ accessToken: data.accessToken, refreshToken: data.refreshToken }, data.user);
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        setError(err.message || 'Login failed');
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Login failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -42,8 +48,14 @@ export default function LoginPage() {
         body: JSON.stringify({ email: demoEmail, password: 'asdf1234' }),
       });
       login({ accessToken: data.accessToken, refreshToken: data.refreshToken }, data.user);
-    } catch (err: any) {
-      setError(err.message || 'Demo login failed');
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        setError(err.message || 'Demo login failed');
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Demo login failed');
+      }
     } finally {
       setLoading(false);
     }

@@ -1,37 +1,45 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { apiClient } from '@/lib/api';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { BoardCanvas } from '@/components/Board/BoardCanvas';
+import { BoardCanvas, type Column } from '@/components/Board/BoardCanvas';
 import { BoardHeader } from '@/components/Board/BoardHeader';
+import { BoardData as HeaderBoardData } from '@/components/Board/ShareBoardModal';
+
+interface BoardData extends HeaderBoardData {
+  columns: Column[];
+}
 
 export default function BoardPage() {
   const { id } = useParams();
   const { user } = useAuth();
   
-  const [board, setBoard] = useState<any>(null);
+  const [board, setBoard] = useState<BoardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchBoard = async () => {
+  const fetchBoard = useCallback(async () => {
     if (!id) return;
     try {
       const data = await apiClient(`/api/boards/${id}`);
       setBoard(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load board');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load board');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     if (!user || !id) return;
-    fetchBoard();
-  }, [user, id]);
+    const run = async () => {
+      await fetchBoard();
+    };
+    run();
+  }, [user, id, fetchBoard]);
 
   if (loading) {
     return (

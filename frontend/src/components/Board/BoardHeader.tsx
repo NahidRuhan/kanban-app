@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Users, Share2, Settings } from 'lucide-react';
-import { ShareBoardModal } from './ShareBoardModal';
-import { apiClient } from '@/lib/api';
+import { ArrowLeft, Share2 } from 'lucide-react';
+import { ShareBoardModal, BoardData, BoardMember } from './ShareBoardModal';
+import { apiClient, ApiError } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface BoardHeaderProps {
-  board: any;
+  board: BoardData;
   onUpdate: () => void;
 }
 
@@ -60,8 +60,12 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
         body: JSON.stringify({ title: title.trim() }),
       });
       onUpdate();
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to update board title');
+    } catch (err: unknown) {
+      if (err instanceof Error || err instanceof ApiError) {
+        toast.error(err.message || 'Failed to update board title');
+      } else {
+        toast.error('Failed to update board title');
+      }
       setTitle(board.title);
     } finally {
       setIsEditing(false);
@@ -79,8 +83,8 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
 
   // Derive unique members including owner
   const allMembers = [
-    { ...board.owner, role: 'OWNER' },
-    ...board.members.map((m: any) => ({ ...m.user, role: m.role }))
+    ...(board.owner ? [{ ...board.owner, role: 'OWNER' }] : []),
+    ...board.members.map((m: BoardMember) => ({ ...m.user, role: m.role }))
   ];
 
   return (
@@ -115,11 +119,11 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
           
           <div className="flex items-center space-x-4">
             <div className="flex -space-x-2 overflow-hidden px-1">
-              {allMembers.map((member: any) => {
-                const color = getAvatarColor(member.id || member.email);
+              {allMembers.map((member: { id?: string; name: string; email: string; role: string }) => {
+                const color = getAvatarColor(member.id || member.email || 'unknown');
                 return (
                   <div
-                    key={member.id}
+                    key={member.id || member.email}
                     className={`inline-flex h-9 w-9 rounded-[10px] ring-2 ring-white items-center justify-center text-xs font-bold ${color.bg} ${color.text}`}
                     title={`${member.name} (${member.email})`}
                   >
