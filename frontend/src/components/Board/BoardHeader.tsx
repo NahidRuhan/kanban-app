@@ -89,10 +89,10 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
 
   return (
     <>
-      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 z-10 relative">
-        <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center">
-          <Link href="/" className="mr-4 p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors duration-150">
-            <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
+      <header className="bg-white/60 backdrop-blur-2xl border-b border-zinc-200/50 z-10 relative">
+        <div className="max-w-350 mx-auto w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center">
+          <Link href="/" className="group mr-4 p-2 rounded-xl hover:bg-zinc-100 text-zinc-500 hover:text-zinc-900 transition-all duration-300 ease-(--ease-spring) outline-none focus-visible:ring-2 focus-visible:ring-zinc-400">
+            <ArrowLeft className="h-5 w-5 group-hover:-translate-x-0.5 transition-transform duration-300 ease-(--ease-spring)" strokeWidth={1.5} />
           </Link>
           
           <div className="flex-1 overflow-hidden mr-4">
@@ -104,12 +104,12 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={handleUpdateTitle}
                 onKeyDown={handleKeyDown}
-                className="text-lg font-semibold text-slate-900 tracking-tight bg-white border border-blue-500 rounded px-2 py-0.5 outline-none focus:ring-2 focus:ring-blue-500/20 w-full max-w-sm"
+                className="text-lg font-medium text-zinc-900 tracking-tight bg-white border border-zinc-300 rounded-lg px-3 py-1 outline-none focus:ring-4 focus:ring-zinc-100 focus:border-zinc-400 transition-all duration-300 w-full max-w-sm"
               />
             ) : (
               <h1 
                 onClick={() => setIsEditing(true)}
-                className="text-lg font-semibold text-slate-900 tracking-tight truncate cursor-pointer hover:bg-slate-100 px-2 py-0.5 -ml-2 rounded transition-colors duration-150 inline-block max-w-full"
+                className="text-lg font-medium text-zinc-900 tracking-tight truncate cursor-pointer hover:bg-zinc-100 px-3 py-1 -ml-3 rounded-lg transition-colors duration-300 inline-block max-w-full"
                 title="Click to edit board title"
               >
                 {board.title}
@@ -124,7 +124,7 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
                 return (
                   <div
                     key={member.id || member.email}
-                    className={`inline-flex h-9 w-9 rounded-[10px] ring-2 ring-white items-center justify-center text-xs font-bold ${color.bg} ${color.text}`}
+                    className={`inline-flex h-9 w-9 rounded-[10px] ring-2 ring-white items-center justify-center text-[13px] font-bold ${color.bg} ${color.text} shadow-sm`}
                     title={`${member.name} (${member.email})`}
                   >
                     {member.name.charAt(0).toUpperCase()}
@@ -135,9 +135,9 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
             
             <button
               onClick={() => setIsShareModalOpen(true)}
-              className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 active:scale-[0.97] transition-all duration-150"
+              className="inline-flex items-center justify-center rounded-full bg-zinc-900 px-4 py-2 text-[14px] font-medium text-white hover:bg-zinc-800 active:scale-[0.96] transition-all duration-300 ease-(--ease-spring) shadow-sm focus:outline-none focus:ring-4 focus:ring-zinc-200"
             >
-              <Share2 className="mr-2 h-4 w-4 text-slate-500" strokeWidth={1.5} />
+              <Share2 className="mr-2 h-4 w-4" strokeWidth={1.5} />
               Share
             </button>
           </div>

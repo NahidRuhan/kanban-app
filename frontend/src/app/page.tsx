@@ -5,7 +5,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { apiClient, ApiError } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
-import { LogOut, Plus, Loader2, Trash2, LayoutGrid, ArrowRight, FolderKanban } from 'lucide-react';
+import { LogOut, Plus, Loader2, Trash2, LayoutGrid, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 const BOARD_COLORS = [
@@ -141,38 +141,36 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-background">
+      <div className="flex min-h-dvh items-center justify-center bg-background">
         <Loader2 className="animate-spin h-8 w-8 text-zinc-400" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-[100dvh] bg-background flex flex-col font-sans selection:bg-zinc-800 selection:text-white pb-24">
+    <div className="min-h-dvh bg-background flex flex-col font-sans selection:bg-zinc-800 selection:text-white pb-24">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white/60 backdrop-blur-2xl border-b border-zinc-200/50">
-        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12 py-5 flex justify-between items-center">
+        <div className="max-w-350 mx-auto px-6 sm:px-8 lg:px-12 py-5 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 bg-zinc-900 rounded-xl flex items-center justify-center shadow-sm">
-              <FolderKanban className="text-white h-5 w-5" strokeWidth={1.5} />
-            </div>
+            <Image src="/logo.svg" alt="Kanban Logo" width={36} height={36} className="rounded-xl shadow-sm" priority />
             <h1 className="text-xl font-medium tracking-tight text-zinc-900">Kanban</h1>
           </div>
           <div className="flex items-center space-x-5">
             <span className="text-sm font-medium text-zinc-500">{user.email}</span>
             <button
               onClick={logout}
-              className="group p-2.5 text-zinc-400 hover:text-zinc-900 rounded-full hover:bg-zinc-100 transition-all duration-300 ease-[var(--ease-spring)] focus:outline-none focus:ring-2 focus:ring-zinc-200"
+              className="group p-2.5 text-zinc-400 hover:text-zinc-900 rounded-full hover:bg-zinc-100 transition-all duration-300 ease-(--ease-spring) focus:outline-none focus:ring-2 focus:ring-zinc-200"
               title="Logout"
             >
-              <LogOut className="h-5 w-5 group-hover:-translate-x-0.5 transition-transform duration-300 ease-[var(--ease-spring)]" strokeWidth={1.5} />
+              <LogOut className="h-5 w-5 group-hover:-translate-x-0.5 transition-transform duration-300 ease-(--ease-spring)" strokeWidth={1.5} />
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-[1400px] mx-auto px-6 sm:px-8 lg:px-12 pt-16 lg:pt-24 w-full">
+      <main className="flex-1 max-w-350 mx-auto px-6 sm:px-8 lg:px-12 pt-16 lg:pt-24 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
           
           {/* Left Column: Create Form & Intro */}
@@ -182,7 +180,7 @@ export default function DashboardPage() {
                 Workspace
               </div>
               <h2 className="text-4xl lg:text-5xl font-medium text-zinc-900 tracking-tight leading-tight mb-4">
-                Manage your projects.
+                Manage your projects
               </h2>
               <p className="text-zinc-500 text-lg leading-relaxed max-w-sm">
                 Create new boards to organize tasks, or collaborate on shared projects.
@@ -202,12 +200,12 @@ export default function DashboardPage() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="w-12 h-12 flex items-center justify-center rounded-full bg-zinc-900 text-white shadow-sm hover:bg-zinc-800 active:scale-[0.95] transition-all duration-500 ease-[var(--ease-spring)] disabled:opacity-50 disabled:hover:bg-zinc-900 shrink-0 group/btn"
+                  className="w-12 h-12 flex items-center justify-center rounded-full bg-zinc-900 text-white shadow-sm hover:bg-zinc-800 active:scale-95 transition-all duration-500 ease-(--ease-spring) disabled:opacity-50 disabled:hover:bg-zinc-900 shrink-0 group/btn"
                 >
                   {creating ? (
                     <Loader2 className="animate-spin h-5 w-5" strokeWidth={1.5} />
                   ) : (
-                    <Plus className="h-5 w-5 group-hover/btn:rotate-90 transition-transform duration-500 ease-[var(--ease-spring)]" strokeWidth={1.5} />
+                    <Plus className="h-5 w-5 group-hover/btn:rotate-90 transition-transform duration-500 ease-(--ease-spring)" strokeWidth={1.5} />
                   )}
                 </button>
               </div>
@@ -219,19 +217,19 @@ export default function DashboardPage() {
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="p-2 rounded-[2rem] bg-zinc-100/50 border border-zinc-200/50">
-                    <div className="bg-white/40 rounded-[calc(2rem-0.5rem)] h-44 animate-pulse" />
+                  <div key={i} className="p-2 rounded-4xl bg-zinc-100/50 border border-zinc-200/50">
+                    <div className="bg-white/40 rounded-3xl h-44 animate-pulse" />
                   </div>
                 ))}
               </div>
             ) : boards.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full min-h-[400px] border border-dashed border-zinc-200/60 rounded-[2.5rem] bg-white/40 p-12 text-center animate-[staggerFadeUp_0.8s_var(--ease-spring)_forwards]">
+              <div className="flex flex-col items-center justify-center h-full min-h-100 border border-dashed border-zinc-200/60 rounded-[2.5rem] bg-white/40 p-12 text-center animate-stagger-fade-up">
                 <div className="w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-6">
                   <LayoutGrid className="h-7 w-7 text-zinc-400" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-xl font-medium text-zinc-900 mb-2">Pristine workspace</h3>
                 <p className="text-zinc-500 max-w-sm mx-auto leading-relaxed">
-                  You don't have any boards yet. Create your first board using the form on the left to get started.
+                  You don&apos;t have any boards yet. Create your first board using the form on the left to get started.
                 </p>
               </div>
             ) : (
@@ -258,8 +256,8 @@ export default function DashboardPage() {
                               opacity: 0
                             }}
                           >
-                            <div className="p-1.5 rounded-[2rem] bg-zinc-100/80 border border-zinc-200/60 transition-all duration-700 ease-[var(--ease-spring)] group-hover:bg-zinc-200/80 group-focus-visible:ring-2 group-focus-visible:ring-zinc-400 group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-background h-full">
-                              <div className="bg-white rounded-[calc(2rem-0.375rem)] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-zinc-100 p-6 flex flex-col h-full min-h-[11rem] transition-transform duration-700 ease-[var(--ease-spring)] group-hover:scale-[0.98]">
+                            <div className="p-1.5 rounded-4xl bg-zinc-100/80 border border-zinc-200/60 transition-all duration-700 ease-(--ease-spring) group-hover:bg-zinc-200/80 group-focus-visible:ring-2 group-focus-visible:ring-zinc-400 group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-background h-full">
+                              <div className="bg-white rounded-[1.625rem] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-zinc-100 p-6 flex flex-col h-full min-h-44 transition-transform duration-700 ease-(--ease-spring) group-hover:scale-[0.98]">
                                 <div className="flex justify-between items-start mb-auto">
                                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${color.bg}`}>
                                     <LayoutGrid className={`h-4 w-4 ${color.icon}`} strokeWidth={1.5} />
@@ -276,8 +274,8 @@ export default function DashboardPage() {
                                   <div className="flex-1 min-w-0 pr-4">
                                     <h3 className="text-[17px] font-medium text-zinc-900 break-words leading-tight group-hover:text-black transition-colors">{board.title}</h3>
                                   </div>
-                                  <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 shrink-0 group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 transition-colors duration-500 ease-[var(--ease-spring)]">
-                                    <ArrowRight className="h-4 w-4 group-hover:-rotate-45 transition-transform duration-500 ease-[var(--ease-spring)]" strokeWidth={1.5} />
+                                  <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 shrink-0 group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 transition-colors duration-500 ease-(--ease-spring)">
+                                    <ArrowRight className="h-4 w-4 group-hover:-rotate-45 transition-transform duration-500 ease-(--ease-spring)" strokeWidth={1.5} />
                                   </div>
                                 </div>
                               </div>
@@ -311,8 +309,8 @@ export default function DashboardPage() {
                               opacity: 0
                             }}
                           >
-                            <div className="p-1.5 rounded-[2rem] bg-zinc-100/50 border border-zinc-200/40 transition-all duration-700 ease-[var(--ease-spring)] group-hover:bg-zinc-200/50 group-focus-visible:ring-2 group-focus-visible:ring-zinc-400 group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-background h-full">
-                              <div className="bg-white/80 backdrop-blur-sm rounded-[calc(2rem-0.375rem)] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.03)] border border-zinc-100/50 p-6 flex flex-col h-full min-h-[11rem] transition-transform duration-700 ease-[var(--ease-spring)] group-hover:scale-[0.98]">
+                            <div className="p-1.5 rounded-4xl bg-zinc-100/50 border border-zinc-200/40 transition-all duration-700 ease-(--ease-spring) group-hover:bg-zinc-200/50 group-focus-visible:ring-2 group-focus-visible:ring-zinc-400 group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-background h-full">
+                              <div className="bg-white/80 backdrop-blur-sm rounded-[1.625rem] shadow-[0_2px_8px_-4px_rgba(0,0,0,0.03)] border border-zinc-100/50 p-6 flex flex-col h-full min-h-44 transition-transform duration-700 ease-(--ease-spring) group-hover:scale-[0.98]">
                                 <div className="flex justify-between items-start mb-auto">
                                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${color.bg}`}>
                                     <LayoutGrid className={`h-4 w-4 ${color.icon}`} strokeWidth={1.5} />
@@ -329,8 +327,8 @@ export default function DashboardPage() {
                                   <div className="flex-1 min-w-0 pr-4">
                                     <h3 className="text-[17px] font-medium text-zinc-900 break-words leading-tight group-hover:text-black transition-colors">{board.title}</h3>
                                   </div>
-                                  <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 shrink-0 group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 transition-colors duration-500 ease-[var(--ease-spring)]">
-                                    <ArrowRight className="h-4 w-4 group-hover:-rotate-45 transition-transform duration-500 ease-[var(--ease-spring)]" strokeWidth={1.5} />
+                                  <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 shrink-0 group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 transition-colors duration-500 ease-(--ease-spring)">
+                                    <ArrowRight className="h-4 w-4 group-hover:-rotate-45 transition-transform duration-500 ease-(--ease-spring)" strokeWidth={1.5} />
                                   </div>
                                 </div>
                               </div>

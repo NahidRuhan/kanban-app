@@ -43,13 +43,13 @@ export default function BoardPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-dvh bg-[#F8F9FC] overflow-hidden">
-        <div className="h-14 bg-white/80 rounded-none animate-pulse border-b border-slate-200/60" />
+      <div className="flex flex-col h-dvh bg-background overflow-hidden">
+        <div className="h-14 bg-white/60 backdrop-blur-2xl rounded-none animate-pulse border-b border-zinc-200/50" />
         <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
           <div className="flex gap-6 min-h-full">
-            <div className="w-80 h-96 bg-slate-100 rounded-xl animate-pulse" />
-            <div className="w-80 h-96 bg-slate-100 rounded-xl animate-pulse delay-75" />
-            <div className="w-80 h-96 bg-slate-100 rounded-xl animate-pulse delay-150" />
+            <div className="w-80 h-96 bg-zinc-100 rounded-4xl animate-pulse border border-zinc-200/50" />
+            <div className="w-80 h-96 bg-zinc-100 rounded-4xl animate-pulse border border-zinc-200/50 delay-75" />
+            <div className="w-80 h-96 bg-zinc-100 rounded-4xl animate-pulse border border-zinc-200/50 delay-150" />
           </div>
         </div>
       </div>
@@ -58,15 +58,15 @@ export default function BoardPage() {
 
   if (error || !board) {
     return (
-      <div className="flex h-dvh flex-col items-center justify-center space-y-4 bg-[#F8F9FC]">
+      <div className="flex h-dvh flex-col items-center justify-center space-y-4 bg-background">
         <div className="text-red-500 font-medium">{error || 'Board not found'}</div>
-        <Link href="/" className="text-blue-500 hover:text-blue-600 transition-colors duration-150">Back to Dashboard</Link>
+        <Link href="/" className="text-zinc-500 hover:text-zinc-900 transition-colors duration-150 underline underline-offset-4">Back to Dashboard</Link>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-dvh bg-[#F8F9FC] overflow-hidden">
+    <div className="flex flex-col h-dvh bg-background overflow-hidden selection:bg-zinc-800 selection:text-white font-sans">
       <BoardHeader board={board} onUpdate={fetchBoard} />
 
       <main className="flex-1 overflow-hidden flex flex-col">

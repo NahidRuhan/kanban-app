@@ -118,20 +118,20 @@ export function ColumnView({ column, onAddTask, onDeleteTask, onUpdateTask, onUp
       id={`column-${column.id}`}
       ref={setNodeRef}
       style={style}
-      className={`w-full h-full flex flex-col rounded-xl max-h-full bg-[#F1F3F9] relative ${
-        visualDragState ? 'shadow-none border-2 border-dashed border-slate-400' : 'shadow-[0_1px_3px_rgba(15,23,42,0.04)]'
+      className={`w-full h-full flex flex-col rounded-xl max-h-full bg-zinc-100/50 border relative transition-all duration-300 ${
+        visualDragState ? 'border-dashed border-zinc-400 shadow-none opacity-60' : 'border-zinc-200/50 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.03)]'
       }`}
     >
       <div 
         className="h-1 rounded-t-xl absolute top-0 left-0 right-0 w-full"
-        style={{ backgroundColor: accentColor, opacity: visualDragState ? 0.5 : 1 }}
+        style={{ backgroundColor: accentColor, opacity: visualDragState ? 0.5 : 0.8 }}
       />
       
-      <div className="p-3 pt-4 font-semibold text-slate-800 flex justify-between items-center group mt-1">
+      <div className="p-4 pt-4 font-medium text-zinc-800 flex justify-between items-center group">
         <div 
           {...attributes} 
           {...listeners} 
-          className="mr-2 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 rounded p-1 hover:bg-slate-200/50"
+          className="mr-2 cursor-grab active:cursor-grabbing text-zinc-400 hover:text-zinc-600 rounded-lg p-1.5 hover:bg-zinc-200/50 transition-colors"
         >
           <GripHorizontal className="w-4 h-4" />
         </div>
@@ -141,7 +141,7 @@ export function ColumnView({ column, onAddTask, onDeleteTask, onUpdateTask, onUp
               autoFocus
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
-              className="flex-1 px-2 py-1 text-sm border rounded-lg border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              className="flex-1 px-3 py-1.5 text-[15px] font-medium text-zinc-900 border rounded-xl border-zinc-200 focus:outline-none focus:ring-4 focus:ring-zinc-200 focus:border-zinc-400 bg-white shadow-sm transition-all"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleUpdateColumn();
                 if (e.key === 'Escape') {
@@ -150,22 +150,22 @@ export function ColumnView({ column, onAddTask, onDeleteTask, onUpdateTask, onUp
                 }
               }}
             />
-            <button onClick={handleUpdateColumn} className="text-emerald-600 hover:text-emerald-700 p-1 rounded-md hover:bg-emerald-50 transition-colors duration-150"><Check className="h-4 w-4 stroke-[1.5]"/></button>
-            <button onClick={() => { setEditTitle(column.title); setIsEditing(false); }} className="text-slate-500 hover:text-slate-700 p-1 rounded-md hover:bg-slate-100 transition-colors duration-150"><X className="h-4 w-4 stroke-[1.5]"/></button>
+            <button onClick={handleUpdateColumn} className="text-zinc-600 hover:text-emerald-600 p-1.5 rounded-lg hover:bg-emerald-50 transition-colors duration-150"><Check className="h-4 w-4 stroke-[1.5]"/></button>
+            <button onClick={() => { setEditTitle(column.title); setIsEditing(false); }} className="text-zinc-400 hover:text-zinc-700 p-1.5 rounded-lg hover:bg-zinc-100 transition-colors duration-150"><X className="h-4 w-4 stroke-[1.5]"/></button>
           </div>
         ) : (
           <>
             <div className="flex-1 flex items-center space-x-2">
-              <span className="truncate" title={column.title}>{column.title}</span>
-              <span className="bg-slate-200/80 text-slate-500 rounded-full px-2 py-0.5 text-xs font-mono tabular-nums font-medium">
+              <span className="truncate text-[15px] tracking-tight" title={column.title}>{column.title}</span>
+              <span className="bg-white/60 border border-zinc-200/60 text-zinc-500 rounded-full px-2.5 py-0.5 text-xs font-mono tabular-nums font-semibold shadow-sm">
                 {column.tasks.length}
               </span>
             </div>
-            <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-              <button onClick={() => setIsEditing(true)} className="p-1 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors duration-150">
+            <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+              <button onClick={() => setIsEditing(true)} className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-white rounded-lg transition-all duration-300 shadow-sm border border-transparent hover:border-zinc-200/60">
                 <Edit2 className="h-4 w-4 stroke-[1.5]" />
               </button>
-              <button onClick={handleDeleteColumn} className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors duration-150">
+              <button onClick={handleDeleteColumn} className="p-1.5 text-zinc-400 hover:text-red-500 hover:bg-white rounded-lg transition-all duration-300 shadow-sm border border-transparent hover:border-zinc-200/60">
                 <Trash2 className="h-4 w-4 stroke-[1.5]" />
               </button>
             </div>
@@ -187,21 +187,21 @@ export function ColumnView({ column, onAddTask, onDeleteTask, onUpdateTask, onUp
         </SortableContext>
       </div>
 
-      <div className="p-3 border-t border-slate-200/50 mt-auto">
-        <form onSubmit={handleSubmit} className="flex items-center">
+      <div className="p-3 mt-auto">
+        <form onSubmit={handleSubmit} className="flex items-center group/add bg-white rounded-2xl p-1 shadow-sm border border-zinc-200/60 focus-within:border-zinc-400 focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300">
           <input
             type="text"
             placeholder="Add a task..."
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}
-            className="flex-1 bg-white border border-slate-200 rounded-l-lg px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+            className="flex-1 bg-transparent px-3 py-1.5 text-[14px] font-medium placeholder:text-zinc-400 focus:outline-none text-zinc-900"
           />
           <button
             type="submit"
             disabled={creating || !newTaskTitle.trim()}
-            className="bg-blue-500 text-white p-2 rounded-r-lg hover:bg-blue-600 active:scale-[0.97] transition-all duration-150 disabled:opacity-40"
+            className="bg-zinc-900 text-white p-2 rounded-xl hover:bg-zinc-800 active:scale-[0.95] transition-all duration-500 ease-(--ease-spring) disabled:opacity-40 disabled:hover:bg-zinc-900 shadow-sm shrink-0"
           >
-            {creating ? <Loader2 className="animate-spin h-5 w-5 stroke-[1.5]" /> : <Plus className="h-5 w-5 stroke-[1.5]" />}
+            {creating ? <Loader2 className="animate-spin h-4 w-4 stroke-[1.5]" /> : <Plus className="h-4 w-4 stroke-[1.5]" />}
           </button>
         </form>
       </div>
