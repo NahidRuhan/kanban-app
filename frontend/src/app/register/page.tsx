@@ -6,6 +6,7 @@ import { apiClient, ApiError } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -25,19 +26,21 @@ export default function RegisterPage() {
         method: 'POST',
         body: JSON.stringify({ email, name, password }),
       });
+      toast.success('Account created successfully!');
       login({ accessToken: data.accessToken, refreshToken: data.refreshToken }, data.user);
     } catch (err: unknown) {
+      let errorMessage = 'Registration failed';
       if (err instanceof ApiError) {
         if (Array.isArray(err.payload?.message)) {
-          setError(err.payload.message.join(', '));
+          errorMessage = err.payload.message.join(', ');
         } else {
-          setError(err.message || 'Registration failed');
+          errorMessage = err.message || errorMessage;
         }
       } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Registration failed');
+        errorMessage = err.message;
       }
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

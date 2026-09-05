@@ -272,7 +272,7 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="mt-8 flex justify-between items-end">
                                   <div className="flex-1 min-w-0 pr-4">
-                                    <h3 className="text-[17px] font-medium text-zinc-900 break-words leading-tight group-hover:text-black transition-colors">{board.title}</h3>
+                                    <h3 className="text-[17px] font-medium text-zinc-900 wrap-break-words leading-tight group-hover:text-black transition-colors">{board.title}</h3>
                                   </div>
                                   <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 shrink-0 group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 transition-colors duration-500 ease-(--ease-spring)">
                                     <ArrowRight className="h-4 w-4 group-hover:-rotate-45 transition-transform duration-500 ease-(--ease-spring)" strokeWidth={1.5} />
@@ -325,7 +325,7 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="mt-8 flex justify-between items-end">
                                   <div className="flex-1 min-w-0 pr-4">
-                                    <h3 className="text-[17px] font-medium text-zinc-900 break-words leading-tight group-hover:text-black transition-colors">{board.title}</h3>
+                                    <h3 className="text-[17px] font-medium text-zinc-900 wrap-break-words leading-tight group-hover:text-black transition-colors">{board.title}</h3>
                                   </div>
                                   <div className="w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 shrink-0 group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 transition-colors duration-500 ease-(--ease-spring)">
                                     <ArrowRight className="h-4 w-4 group-hover:-rotate-45 transition-transform duration-500 ease-(--ease-spring)" strokeWidth={1.5} />

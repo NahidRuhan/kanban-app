@@ -6,6 +6,7 @@ import { apiClient, ApiError } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -24,15 +25,17 @@ export default function LoginPage() {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
+      toast.success('Logged in successfully!');
       login({ accessToken: data.accessToken, refreshToken: data.refreshToken }, data.user);
     } catch (err: unknown) {
+      let errorMessage = 'Login failed';
       if (err instanceof ApiError) {
-        setError(err.message || 'Login failed');
+        errorMessage = err.message || errorMessage;
       } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Login failed');
+        errorMessage = err.message;
       }
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -47,15 +50,17 @@ export default function LoginPage() {
         method: 'POST',
         body: JSON.stringify({ email: demoEmail, password: 'asdf1234' }),
       });
+      toast.success(`Logged in as ${demoEmail.split('@')[0]}!`);
       login({ accessToken: data.accessToken, refreshToken: data.refreshToken }, data.user);
     } catch (err: unknown) {
+      let errorMessage = 'Demo login failed';
       if (err instanceof ApiError) {
-        setError(err.message || 'Demo login failed');
+        errorMessage = err.message || errorMessage;
       } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Demo login failed');
+        errorMessage = err.message;
       }
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

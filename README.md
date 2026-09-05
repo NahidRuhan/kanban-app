@@ -1,107 +1,173 @@
 # Mini Kanban Board
 
-A production-ready Mini Kanban Board with real-time collaboration using **NestJS** (backend), **Next.js** (frontend), **PostgreSQL + Prisma**, and **WebSocket** for live updates.
+A production-ready Mini Kanban Board with real-time collaboration. Build workflows, drag-and-drop tasks, and collaborate instantly across multiple clients.
 
-## Architecture
+## 🚀 Live Demo
+- **Frontend (Vercel):** [https://kanban-app-kohl.vercel.app](https://kanban-app-kohl.vercel.app)
+- **Backend API (Render):** [https://mini-kanban-backend-klrq.onrender.com](https://mini-kanban-backend-klrq.onrender.com)
+  - *Health Check:* `GET /health` (Used by UptimeRobot to prevent 15-minute server sleep)
 
-- **Frontend**: Next.js 14+ App Router, React, Tailwind CSS, `@dnd-kit` for drag-and-drop, Socket.io-client.
-- **Backend**: NestJS, Prisma ORM, PostgreSQL, JWT Authentication, Socket.io via `@nestjs/websockets`.
+---
 
-## Prerequisites
+## ✨ Features
+- **Real-Time Collaboration:** Changes (moving tasks, creating columns, adding members) broadcast instantly to all active users via Socket.io.
+- **Drag and Drop Workspace:** Smooth, interactive Kanban board powered by `@dnd-kit`, supporting reordering within columns and moving between columns.
+- **Stable Ordering:** Uses fractional indexing algorithms to guarantee stable, conflict-free task order when collaborating in real-time.
+- **Authentication & Security:** Secure JWT-based authentication with automatic refresh token rotation.
+- **Access Control:** Boards can be securely shared with specific users; unauthorized users are strictly prevented from viewing or modifying boards.
+- **Modern UI:** Built with Next.js App Router, React 19, and Tailwind CSS for a fast, responsive, and beautiful user experience.
 
+---
+
+## 🛠️ Architecture & Dependencies
+
+### **Frontend** (`/frontend`)
+- **Framework**: Next.js 16+ (App Router)
+- **UI & Styling**: React 19, Tailwind CSS v4, Lucide React, Sonner (for toast notifications)
+- **Interactions**: `@dnd-kit/core` & `@dnd-kit/sortable` (for complex drag-and-drop)
+- **Real-Time**: `socket.io-client`
+- **Testing**: Vitest, React Testing Library, Playwright (E2E)
+
+### **Backend** (`/backend`)
+- **Framework**: NestJS v12 (Node.js)
+- **Database**: PostgreSQL (Hosted on Neon)
+- **ORM**: Prisma ORM v7
+- **Auth**: Passport.js with JWT Strategy (`@nestjs/jwt`)
+- **Real-Time**: Socket.io via `@nestjs/websockets`
+- **Validation**: `class-validator` & `class-transformer`
+
+---
+
+## ⚙️ Environment Variables Example
+
+Before running locally, you must create environment files in both the frontend and backend directories.
+
+### `backend/.env`
+```env
+# Database connection string (e.g. from Neon, Supabase, or local Postgres)
+DATABASE_URL="postgresql://user:password@localhost:5432/kanban?schema=public"
+
+# Authentication Secrets
+JWT_SECRET="super_secret_jwt_key_example"
+JWT_REFRESH_SECRET="super_secret_jwt_refresh_key_example"
+
+# Server Configuration
+BACKEND_PORT=5000
+FRONTEND_URL="http://localhost:3000"
+```
+
+### `frontend/.env.local`
+```env
+# Points to your local or remote backend API
+NEXT_PUBLIC_API_URL="http://localhost:5000"
+```
+
+---
+
+## 💻 Local Setup Instructions
+
+### 1. Prerequisites
 - Node.js v20+
-- PostgreSQL database
-
-## Setup Instructions
-
-### 1. Database Setup
-
-1. Create a PostgreSQL database.
-2. In the root directory, copy the `.env.example` to `.env` (or create one):
-   ```bash
-   cp .env.example .env
-   ```
-3. Update `DATABASE_URL` with your PostgreSQL connection string in both the root `.env` and `backend/.env`.
+- A running PostgreSQL database (or Neon/Supabase URL)
 
 ### 2. Backend Setup
+```bash
+# 1. Navigate to the backend directory
+cd backend
 
-1. Open a terminal and navigate to the `backend` folder:
-   ```bash
-   cd backend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run database migrations:
-   ```bash
-   npx prisma db push
-   ```
-4. Start the backend development server:
-   ```bash
-   npm run start:dev
-   ```
-   The backend API runs on `http://localhost:3001`.
+# 2. Install dependencies
+npm install
+
+# 3. Create .env file based on the example above
+touch .env
+
+# 4. Sync Prisma schema with your database
+npx prisma db push
+
+# 5. Start the backend development server
+npm run start:dev
+```
+*The backend API will run on `http://localhost:5000` (or `3001` if configured).*
 
 ### 3. Frontend Setup
+```bash
+# 1. Open a new terminal and navigate to the frontend directory
+cd frontend
 
-1. Open a new terminal and navigate to the `frontend` folder:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the frontend development server:
-   ```bash
-   npm run dev
-   ```
-   The frontend app runs on `http://localhost:3000`.
+# 2. Install dependencies
+npm install
 
-## API Endpoints Reference
+# 3. Create .env.local file based on the example above
+touch .env.local
+
+# 4. Start the frontend development server
+npm run dev
+```
+*The frontend app will run on `http://localhost:3000`.*
+
+---
+
+## 🌍 Deployment Strategy
+
+- **Frontend (Vercel):** Deployed effortlessly using Vercel's zero-config Next.js builder. Root directory is set to `frontend`.
+- **Backend (Render):** Deployed as a Node Web Service using the `render.yaml` Blueprint file located in the project root. Uses `0.0.0.0` port binding and reads the dynamic `$PORT`.
+- **Keep-Alive:** Because Render spins down free web services after 15 minutes of inactivity, a 3rd-party ping service (UptimeRobot) pings the `@Public()` `GET /health` endpoint every 5 minutes.
+
+---
+
+## 📡 API Endpoints Reference
 
 ### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Authenticate user & receive tokens
-- `POST /api/auth/refresh` - Refresh access token
-- `GET /api/auth/me` - Get current user profile
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user |
+| `POST` | `/api/auth/login` | Authenticate user & receive tokens |
+| `POST` | `/api/auth/refresh` | Refresh access token |
+| `GET`  | `/api/auth/me` | Get current user profile |
 
-### Boards
-- `GET /api/boards` - Get all boards for current user
-- `POST /api/boards` - Create a new board
-- `GET /api/boards/:id` - Get specific board with columns and tasks
-- `PATCH /api/boards/:id` - Update board title
-- `DELETE /api/boards/:id` - Delete board
+### Boards & Collaboration
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET`    | `/api/boards` | Get all boards for current user |
+| `POST`   | `/api/boards` | Create a new board |
+| `GET`    | `/api/boards/:id` | Get specific board with columns and tasks |
+| `PATCH`  | `/api/boards/:id` | Update board title |
+| `DELETE` | `/api/boards/:id` | Delete board |
+| `POST`   | `/api/boards/:id/members` | Share board with a new member |
+| `GET`    | `/api/boards/:id/members` | List board members |
+| `DELETE` | `/api/boards/:id/members/:memberId` | Remove member access |
 
 ### Columns
-- `POST /api/boards/:boardId/columns` - Add a column
-- `PATCH /api/columns/:id` - Update a column
-- `DELETE /api/columns/:id` - Delete a column
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST`   | `/api/boards/:boardId/columns` | Add a column |
+| `PATCH`  | `/api/columns/:id` | Update a column title |
+| `PATCH`  | `/api/columns/:id/reorder` | Update column position |
+| `DELETE` | `/api/columns/:id` | Delete a column |
 
 ### Tasks
-- `POST /api/columns/:columnId/tasks` - Add a task
-- `PATCH /api/tasks/:id` - Update task details
-- `DELETE /api/tasks/:id` - Delete a task
-- `PATCH /api/tasks/:id/move` - Move task between columns or reorder (fractional indexing)
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST`   | `/api/columns/:columnId/tasks` | Add a task |
+| `GET`    | `/api/tasks/:id` | Get specific task details |
+| `PATCH`  | `/api/tasks/:id` | Update task details |
+| `PATCH`  | `/api/tasks/:id/move` | Move task between columns or reorder (fractional indexing) |
+| `DELETE` | `/api/tasks/:id` | Delete a task |
 
-### Board Sharing
-- `POST /api/boards/:id/members` - Add a member to the board
-- `GET /api/boards/:id/members` - List board members
-- `DELETE /api/boards/:id/members/:userId` - Remove member
+---
 
-## Testing
+## 🧪 Testing
 
 ### Backend
 ```bash
 cd backend
 npm run test       # Unit tests
-npm run test:e2e   # E2E tests
+npm run test:e2e   # End-to-End tests
 ```
 
 ### Frontend
 ```bash
 cd frontend
-npm run test       # Component and Integration tests
-npx playwright test # E2E tests
+npm run test       # Component and Integration tests (Vitest)
+npx playwright test # E2E tests (Playwright)
 ```
