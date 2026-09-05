@@ -64,7 +64,42 @@ NEXT_PUBLIC_API_URL="http://localhost:5000"
 
 ---
 
-## 💻 Local Setup Instructions
+## 🐳 Docker Setup (Recommended)
+
+The absolute easiest way to run the entire application locally is using Docker. You do **not** need Node.js, npm, or PostgreSQL installed on your actual machine.
+
+### 1. Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+- Git
+
+### 2. Start the App
+Simply open your terminal, clone the repository, and run the Docker command:
+```bash
+# Clone the repository
+git clone https://github.com/NahidRuhan/kanban-app.git
+cd kanban-app
+
+# Build and start the containers
+docker compose up -d --build
+```
+
+That's it! 
+- The **Frontend** will be available at: `http://localhost:3000`
+- The **Backend API** will be available at: `http://localhost:5000`
+
+---
+🛑 **IMPORTANT NOTE ABOUT STARTUP TIME** 🛑       
+The database is automatically migrated and seeded with test data for you on startup. **It takes about 10 seconds for the backend to complete its cold-boot sequence**, so wait just a moment before trying to log in!
+---
+
+**Useful Commands:**
+- View live logs: `docker compose logs -f`
+- Stop the app: `docker compose down`
+- Reset everything: `docker compose down -v`
+
+---
+
+## 💻 Local Setup Instructions (Manual)
 
 ### 1. Prerequisites
 - Node.js v20+
