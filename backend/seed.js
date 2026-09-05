@@ -129,6 +129,9 @@ async function main() {
     }
   ];
   
+  const createdUsers = [];
+  const createdBoards = [];
+
   for (const u of usersData) {
     const user = await prisma.user.create({
       data: {
@@ -138,6 +141,7 @@ async function main() {
       }
     });
     console.log(`Created user: ${user.name}`);
+    createdUsers.push(user);
     
     const board = await prisma.board.create({
       data: {
@@ -146,6 +150,7 @@ async function main() {
       }
     });
     console.log(`  -> Created board: "${board.title}"`);
+    createdBoards.push(board);
     
     let colPosition = 1;
     for (const colData of u.board.columns) {
@@ -173,6 +178,22 @@ async function main() {
       }
     }
   }
+
+  // 0: Nahid, 1: Pervej, 2: Ruhan
+  // Nahid shares with Pervej
+  await prisma.boardMember.create({
+    data: { boardId: createdBoards[0].id, userId: createdUsers[1].id, role: 'EDITOR' }
+  });
+  // Pervej shares with Ruhan
+  await prisma.boardMember.create({
+    data: { boardId: createdBoards[1].id, userId: createdUsers[2].id, role: 'EDITOR' }
+  });
+  // Ruhan shares with Nahid
+  await prisma.boardMember.create({
+    data: { boardId: createdBoards[2].id, userId: createdUsers[0].id, role: 'EDITOR' }
+  });
+
+  console.log('Successfully shared boards between users!');
 }
 
 main()
