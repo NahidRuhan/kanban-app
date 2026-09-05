@@ -81,10 +81,16 @@ npm install
 # 3. Create .env file based on the example above
 touch .env
 
-# 4. Sync Prisma schema with your database
+# 4. Generate the Prisma Client
+npx prisma generate
+
+# 5. Sync Prisma schema with your database
 npx prisma db push
 
-# 5. Start the backend development server
+# 6. Seed the database with demo users and boards
+node seed.js
+
+# 7. Start the backend development server
 npm run start:dev
 ```
 *The backend API will run on `http://localhost:5000` (or `3001` if configured).*
