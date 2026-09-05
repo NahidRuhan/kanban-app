@@ -50,6 +50,12 @@ async function main() {
               { title: 'Optimize database queries', description: 'Resolve N+1 query problems when fetching boards with their members.' },
               { title: 'API Rate Limiting', description: 'Implement a throttling middleware for all public-facing endpoints.' }
             ]
+          },
+          {
+            title: 'Cancelled',
+            tasks: [
+              { title: 'Implement Google login', description: 'Decided to stick with email/password authentication for the MVP.' }
+            ]
           }
         ]
       }
