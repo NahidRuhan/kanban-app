@@ -78,19 +78,16 @@ cd backend
 # 2. Install dependencies
 npm install
 
-# 3. Create .env file based on the example above
-touch .env
-
-# 4. Generate the Prisma Client
+# 3. Generate the Prisma Client
 npx prisma generate
 
-# 5. Sync Prisma schema with your database
+# 4. Sync Prisma schema with your database
 npx prisma db push
 
-# 6. Seed the database with demo users and boards
+# 5. Seed the database with demo users and boards
 node seed.js
 
-# 7. Start the backend development server
+# 6. Start the backend development server
 npm run start:dev
 ```
 *The backend API will run on `http://localhost:5000` (or `3001` if configured).*
@@ -103,10 +100,7 @@ cd frontend
 # 2. Install dependencies
 npm install
 
-# 3. Create .env.local file based on the example above
-touch .env.local
-
-# 4. Start the frontend development server
+# 3. Start the frontend development server
 npm run dev
 ```
 *The frontend app will run on `http://localhost:3000`.*
