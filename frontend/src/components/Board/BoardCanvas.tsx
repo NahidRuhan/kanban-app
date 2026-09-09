@@ -612,7 +612,7 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
         {!showAddColumn ? (
           <button
             onClick={() => setShowAddColumn(true)}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 bg-white/60 backdrop-blur-sm border border-dashed border-slate-300 hover:border-slate-400 rounded-lg px-3 py-1.5 transition-all duration-200 active:scale-[0.97]"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-zinc-400 hover:text-slate-700 dark:hover:text-zinc-200 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm border border-dashed border-slate-300 dark:border-zinc-700 hover:border-slate-400 dark:hover:border-zinc-600 rounded-lg px-3 py-1.5 transition-all duration-200 active:scale-[0.97]"
           >
             <Plus className="h-4 w-4" strokeWidth={1.5} />
             Add column
@@ -639,13 +639,13 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
                   setNewColumnTitle('');
                 }
               }}
-              className="w-48 bg-white border border-slate-300 rounded-l-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-slate-900"
+              className="w-48 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-l-lg px-3 py-1.5 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
             />
             <button
               type="submit"
               onMouseDown={(e) => e.preventDefault()} // prevent blur before submit fires
               disabled={creatingColumn || !newColumnTitle.trim()}
-              className="bg-blue-500 text-white px-3 py-1.5 rounded-r-lg border border-transparent hover:bg-blue-600 disabled:opacity-50 text-sm font-medium transition-colors duration-150"
+              className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-3 py-1.5 rounded-r-lg border border-transparent hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-50 text-sm font-medium transition-colors duration-150"
             >
               {creatingColumn ? <Loader2 className="animate-spin h-4 w-4" /> : 'Add'}
             </button>
@@ -666,9 +666,9 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
           <div className="max-w-6xl mx-auto w-full min-h-full h-full px-4 sm:px-6 lg:px-8 pb-6">
             <SortableContext items={columns.map(c => c.id)} strategy={rectSortingStrategy}>
               {columns.length === 0 ? (
-                <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-12 h-64 text-center mt-8">
-                  <h3 className="text-lg font-medium text-slate-500 mb-2">No columns yet</h3>
-                  <p className="text-sm text-slate-400">
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl p-12 h-64 text-center mt-8">
+                  <h3 className="text-lg font-medium text-slate-500 dark:text-zinc-400 mb-2">No columns yet</h3>
+                  <p className="text-sm text-slate-400 dark:text-zinc-500">
                     Click on add column to add one
                   </p>
                 </div>

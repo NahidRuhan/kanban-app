@@ -1,10 +1,16 @@
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
 
 :root {
   --background: #f4f4f5;
   --foreground: #09090b;
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out-expo: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
 }
 
 @theme inline {

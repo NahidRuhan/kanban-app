@@ -4,6 +4,7 @@ import { ArrowLeft, Share2 } from 'lucide-react';
 import { ShareBoardModal, BoardData, BoardMember } from './ShareBoardModal';
 import { apiClient, ApiError } from '@/lib/api';
 import { toast } from 'sonner';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface BoardHeaderProps {
   board: BoardData;
@@ -89,9 +90,9 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
 
   return (
     <>
-      <header className="bg-white/60 backdrop-blur-2xl border-b border-zinc-200/50 z-10 relative">
+      <header className="bg-white/60 dark:bg-zinc-950/60 backdrop-blur-2xl border-b border-zinc-200/50 dark:border-zinc-800/50 z-10 relative">
         <div className="max-w-350 mx-auto w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center">
-          <Link href="/" className="group mr-4 p-2 rounded-xl hover:bg-zinc-100 text-zinc-500 hover:text-zinc-900 transition-all duration-300 ease-(--ease-spring) outline-none focus-visible:ring-2 focus-visible:ring-zinc-400">
+          <Link href="/" className="group mr-4 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all duration-300 ease-(--ease-spring) outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 dark:focus-visible:ring-zinc-600">
             <ArrowLeft className="h-5 w-5 group-hover:-translate-x-0.5 transition-transform duration-300 ease-(--ease-spring)" strokeWidth={1.5} />
           </Link>
           
@@ -104,12 +105,12 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={handleUpdateTitle}
                 onKeyDown={handleKeyDown}
-                className="text-lg font-medium text-zinc-900 tracking-tight bg-white border border-zinc-300 rounded-lg px-3 py-1 outline-none focus:ring-4 focus:ring-zinc-100 focus:border-zinc-400 transition-all duration-300 w-full max-w-sm"
+                className="text-lg font-medium text-zinc-900 dark:text-zinc-100 tracking-tight bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg px-3 py-1 outline-none focus:ring-4 focus:ring-zinc-100 dark:focus:ring-zinc-800 focus:border-zinc-400 dark:focus:border-zinc-500 transition-all duration-300 w-full max-w-sm"
               />
             ) : (
               <h1 
                 onClick={() => setIsEditing(true)}
-                className="text-lg font-medium text-zinc-900 tracking-tight truncate cursor-pointer hover:bg-zinc-100 px-3 py-1 -ml-3 rounded-lg transition-colors duration-300 inline-block max-w-full"
+                className="text-lg font-medium text-zinc-900 dark:text-zinc-100 tracking-tight truncate cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 px-3 py-1 -ml-3 rounded-lg transition-colors duration-300 inline-block max-w-full"
                 title="Click to edit board title"
               >
                 {board.title}
@@ -117,14 +118,14 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
             )}
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="flex -space-x-2 overflow-hidden px-1">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="hidden sm:flex -space-x-2 overflow-hidden px-1">
               {allMembers.map((member: { id?: string; name: string; email: string; role: string }) => {
                 const color = getAvatarColor(member.id || member.email || 'unknown');
                 return (
                   <div
                     key={member.id || member.email}
-                    className={`inline-flex h-9 w-9 rounded-[10px] ring-2 ring-white items-center justify-center text-[13px] font-bold ${color.bg} ${color.text} shadow-sm`}
+                    className={`inline-flex h-9 w-9 rounded-[10px] ring-2 ring-white dark:ring-zinc-950 items-center justify-center text-[13px] font-bold ${color.bg} ${color.text} dark:brightness-75 shadow-sm`}
                     title={`${member.name} (${member.email})`}
                   >
                     {member.name.charAt(0).toUpperCase()}
@@ -133,9 +134,11 @@ export function BoardHeader({ board, onUpdate }: BoardHeaderProps) {
               })}
             </div>
             
+            <ThemeToggle />
+            
             <button
               onClick={() => setIsShareModalOpen(true)}
-              className="inline-flex items-center justify-center rounded-full bg-zinc-900 px-4 py-2 text-[14px] font-medium text-white hover:bg-zinc-800 active:scale-[0.96] transition-all duration-300 ease-(--ease-spring) shadow-sm focus:outline-none focus:ring-4 focus:ring-zinc-200"
+              className="inline-flex items-center justify-center rounded-full bg-zinc-900 px-4 py-2 text-[14px] font-medium text-white hover:bg-zinc-800 active:scale-[0.96] transition-all duration-300 ease-(--ease-spring) shadow-sm focus:outline-none focus:ring-4 focus:ring-zinc-200 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 dark:focus:ring-zinc-700"
             >
               <Share2 className="mr-2 h-4 w-4" strokeWidth={1.5} />
               Share

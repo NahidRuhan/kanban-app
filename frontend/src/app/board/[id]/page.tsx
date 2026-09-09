@@ -44,12 +44,12 @@ export default function BoardPage() {
   if (loading) {
     return (
       <div className="flex flex-col h-dvh bg-background overflow-hidden">
-        <div className="h-14 bg-white/60 backdrop-blur-2xl rounded-none animate-pulse border-b border-zinc-200/50" />
+        <div className="h-14 bg-white/60 dark:bg-zinc-950/60 backdrop-blur-2xl rounded-none animate-pulse border-b border-zinc-200/50 dark:border-zinc-800/50" />
         <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
           <div className="flex gap-6 min-h-full">
-            <div className="w-80 h-96 bg-zinc-100 rounded-4xl animate-pulse border border-zinc-200/50" />
-            <div className="w-80 h-96 bg-zinc-100 rounded-4xl animate-pulse border border-zinc-200/50 delay-75" />
-            <div className="w-80 h-96 bg-zinc-100 rounded-4xl animate-pulse border border-zinc-200/50 delay-150" />
+            <div className="w-80 h-96 bg-zinc-100 dark:bg-zinc-900 rounded-4xl animate-pulse border border-zinc-200/50 dark:border-zinc-800/50" />
+            <div className="w-80 h-96 bg-zinc-100 dark:bg-zinc-900 rounded-4xl animate-pulse border border-zinc-200/50 dark:border-zinc-800/50 delay-75" />
+            <div className="w-80 h-96 bg-zinc-100 dark:bg-zinc-900 rounded-4xl animate-pulse border border-zinc-200/50 dark:border-zinc-800/50 delay-150" />
           </div>
         </div>
       </div>
@@ -59,8 +59,8 @@ export default function BoardPage() {
   if (error || !board) {
     return (
       <div className="flex h-dvh flex-col items-center justify-center space-y-4 bg-background">
-        <div className="text-red-500 font-medium">{error || 'Board not found'}</div>
-        <Link href="/" className="text-zinc-500 hover:text-zinc-900 transition-colors duration-150 underline underline-offset-4">Back to Dashboard</Link>
+        <div className="text-red-500 dark:text-red-400 font-medium">{error || 'Board not found'}</div>
+        <Link href="/" className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors duration-150 underline underline-offset-4">Back to Dashboard</Link>
       </div>
     );
   }

@@ -14,18 +14,27 @@ export const metadata: Metadata = {
   },
 };
 
+import { ThemeProvider } from "@/providers/ThemeProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
-      <body className={`${geist.variable} font-sans antialiased`}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-        <Toaster position="top-center" richColors theme="light" style={{ fontFamily: 'var(--font-geist)' }} />
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <body className={`${geist.variable} font-sans antialiased bg-background text-foreground`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+          <Toaster position="top-center" richColors style={{ fontFamily: 'var(--font-geist)' }} />
+        </ThemeProvider>
       </body>
     </html>
   );

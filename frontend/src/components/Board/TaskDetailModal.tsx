@@ -41,15 +41,15 @@ export function TaskDetailModal({ task, onClose, onUpdate, mode = 'edit' }: Task
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
       <div 
-        className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-[0_20px_40px_-15px_rgba(15,23,42,0.15)]"
+        className="w-full max-w-lg rounded-2xl bg-white dark:bg-zinc-900 p-6 shadow-[0_20px_40px_-15px_rgba(15,23,42,0.15)] dark:shadow-black/50"
         style={{ animation: 'modalEnter 200ms cubic-bezier(0.23, 1, 0.32, 1)' }}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold tracking-tight text-[#0F172A]">
+          <h2 className="text-lg font-semibold tracking-tight text-[#0F172A] dark:text-zinc-100">
             {mode === 'edit' ? 'Edit Task' : 'Task Details'}
           </h2>
-          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors duration-150">
+          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors duration-150">
             <X className="h-5 w-5 stroke-[1.5]" />
           </button>
         </div>
@@ -57,21 +57,21 @@ export function TaskDetailModal({ task, onClose, onUpdate, mode = 'edit' }: Task
         {mode === 'edit' ? (
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Title</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                className="w-full rounded-lg border border-slate-200 dark:border-zinc-700 bg-transparent dark:text-zinc-100 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
               />
             </div>
             
             <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-zinc-300 mb-1">Description</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full min-h-30 resize-y rounded-lg border border-slate-200 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                className="w-full min-h-30 resize-y rounded-lg border border-slate-200 dark:border-zinc-700 bg-transparent dark:text-zinc-100 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
               />
             </div>
 
@@ -79,14 +79,14 @@ export function TaskDetailModal({ task, onClose, onUpdate, mode = 'edit' }: Task
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 focus:outline-none active:scale-[0.97] transition-all duration-150"
+                className="rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm font-medium text-slate-600 dark:text-zinc-300 shadow-sm hover:bg-slate-50 dark:hover:bg-zinc-700 focus:outline-none active:scale-[0.97] transition-all duration-150"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading || !title.trim()}
-                className="inline-flex justify-center items-center rounded-lg border border-transparent bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-600 focus:outline-none active:scale-[0.97] transition-all duration-150 disabled:opacity-50"
+                className="inline-flex justify-center items-center rounded-lg border border-transparent bg-zinc-900 dark:bg-zinc-100 px-4 py-2 text-sm font-medium text-white dark:text-zinc-900 shadow-sm hover:bg-zinc-800 dark:hover:bg-zinc-200 focus:outline-none active:scale-[0.97] transition-all duration-150 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="animate-spin h-4 w-4 stroke-[1.5]" /> : 'Save'}
               </button>
@@ -95,21 +95,21 @@ export function TaskDetailModal({ task, onClose, onUpdate, mode = 'edit' }: Task
         ) : (
           <div>
             <div className="mb-4">
-              <h3 className="text-xl font-semibold text-[#0F172A] wrap-break-words">{task.title}</h3>
+              <h3 className="text-xl font-semibold text-[#0F172A] dark:text-zinc-100 wrap-break-words">{task.title}</h3>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-slate-700 mb-2">Description</h4>
+              <h4 className="text-sm font-medium text-slate-700 dark:text-zinc-300 mb-2">Description</h4>
               {task.description ? (
-                <p className="text-sm text-slate-700 whitespace-pre-wrap bg-slate-50 p-4 rounded-xl border border-slate-100">{task.description}</p>
+                <p className="text-sm text-slate-700 dark:text-zinc-300 whitespace-pre-wrap bg-slate-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-slate-100 dark:border-zinc-700">{task.description}</p>
               ) : (
-                <p className="text-slate-400 italic text-sm">No description provided.</p>
+                <p className="text-slate-400 dark:text-zinc-500 italic text-sm">No description provided.</p>
               )}
             </div>
             <div className="mt-6 flex justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 focus:outline-none active:scale-[0.97] transition-all duration-150"
+                className="rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2 text-sm font-medium text-slate-600 dark:text-zinc-300 shadow-sm hover:bg-slate-50 dark:hover:bg-zinc-700 focus:outline-none active:scale-[0.97] transition-all duration-150"
               >
                 Close
               </button>
