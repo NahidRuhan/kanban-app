@@ -203,7 +203,10 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
           if (t) movedTask = t;
         }
 
-        if (!movedTask) return prev; // If not found, just wait for fetchBoard
+        if (!movedTask) {
+          setTimeout(handleUpdate, 0); // Need to fetch because we don't have this task
+          return prev;
+        }
 
         // Remove from ALL columns first to prevent duplicates (especially when receiving our own broadcast)
         const next = prev.map(col => {
@@ -218,14 +221,44 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
         });
         return next;
       });
-      handleUpdate(); // Refetch to guarantee consistency (handles edge cases seamlessly in background)
     });
     newSocket.on('column:created', handleUpdate);
-    newSocket.on('column:updated', handleUpdate);
-    newSocket.on('column:reordered', handleUpdate);
+    newSocket.on('column:updated', (payload: Column) => {
+      setColumns(prev => {
+        const next = [...prev];
+        const idx = next.findIndex(c => c.id === payload.id);
+        if (idx !== -1) {
+          next[idx] = { ...next[idx], title: payload.title };
+        }
+        return next;
+      });
+    });
+    newSocket.on('column:reordered', (payload: Column) => {
+      setColumns(prev => {
+        const next = [...prev];
+        const idx = next.findIndex(c => c.id === payload.id);
+        if (idx !== -1) {
+          next[idx] = { ...next[idx], position: payload.position };
+          next.sort((a, b) => a.position - b.position);
+        }
+        return next;
+      });
+    });
     newSocket.on('column:deleted', handleUpdate);
     newSocket.on('task:deleted', handleUpdate);
-    newSocket.on('task:updated', handleUpdate);
+    newSocket.on('task:updated', (payload: Task) => {
+      setColumns(prev => {
+        return prev.map(col => {
+          const idx = col.tasks.findIndex(t => t.id === payload.id);
+          if (idx !== -1) {
+            const newTasks = [...col.tasks];
+            newTasks[idx] = { ...newTasks[idx], ...payload };
+            return { ...col, tasks: newTasks };
+          }
+          return col;
+        });
+      });
+    });
     newSocket.on('member:added', handleUpdate);
     newSocket.on('member:removed', handleUpdate);
     newSocket.on('board:updated', () => {
@@ -253,7 +286,6 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
         delete next[payload.taskId];
         return next;
       });
-      handleUpdate();
     });
 
     newSocket.on('column:drag-move', (payload: { columnId: string; column: Column; delta: { x: number; y: number }; user: { name?: string; email?: string } }) => {
@@ -274,7 +306,6 @@ export function BoardCanvas({ boardId, initialData, onBoardUpdate }: BoardCanvas
         delete next[payload.columnId];
         return next;
       });
-      handleUpdate();
     });
 
     newSocket.on('column:drag-over-state', (payload: { activeId: string; overId: string }) => {
